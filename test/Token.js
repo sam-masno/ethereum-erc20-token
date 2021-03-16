@@ -64,4 +64,37 @@ contract('Token tests', async (accounts) => {
     expect(receiptBalance).to.equal(send);
   });
 
+  it('approves spender and emits event to logs', async () => {
+    let _value = 10000;
+    let { logs: { '0': { args } }} = await instance.approve(third, _value, { from: first });
+    expect(args._from).to.equal(first);
+    expect(args._to).to.equal(third);
+    expect(args.value.toNumber()).to.equal(_value);
+
+    let balance = (await instance.allowance.call(first, third)).toNumber();
+    expect(balance).to.equal(_value);
+  })
+
+  it('delegated transfer does not allow more than allowance', async () => {
+    let send = 100000;
+    let err;
+    try {
+      let tx = await instance.transferFrom(third, second, send);
+    } catch (error) {
+      err = error;
+    }
+    expect(err.reason).to.equal('Insufficient funds');
+  })
+
+  it ('transferFunds delegates transfer funds', async () => {
+    let _value = 10000;
+    try {
+      await instance.transferFrom(first, third, _value, { from: third });
+      let balance = (await instance.balanceOf.call(third)).toNumber();
+      expect(balance).to.equal(_value);
+    } catch (error) {
+      console.log(error)
+    }
+  })
+
 });
