@@ -23,7 +23,7 @@ contract('Token tests', async (accounts) => {
 
   it('sets total supply to 1000000 on deployment', async () => {
     let supply = await instance.totalSupply.call();
-    expect(supply.toNumber()).to.equal(1500000);
+    expect(supply.toNumber()).to.equal(1000000);
   });
 
   it('sets decimal on deployment', async () => {
@@ -34,7 +34,7 @@ contract('Token tests', async (accounts) => {
   it('allocates totalSupply to owner', async () => {
     let adminBalance = await instance.balanceOf.call(accounts[0]);
     let totalSupply = await instance.totalSupply.call();
-    expect(adminBalance.toNumber()).to.equal(totalSupply.toNumber());
+    expect(adminBalance.toNumber()).to.equal(500000);
   })
 
   it('does not overdraft a given balance', async () => {
