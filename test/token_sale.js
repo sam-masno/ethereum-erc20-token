@@ -13,6 +13,13 @@ contract("TokenSale", function (accounts) {
     return assert.isTrue(true);
   });
 
+  it("should have a balance of half 500000 tokens", async () => {
+    const tokenInstance = await Token.deployed();
+    const tokenSaleInstance = await TokenSale.deployed();
+    const balance = await tokenInstance.balanceOf.call(tokenSaleInstance.address);
+    expect(balance.toNumber()).to.equal(500000);
+  })
+
   it("should have an admin equal to source wallet", async () => {
     const tokenSale = await TokenSale.deployed();
     const tokenInstance = await Token.deployed();
@@ -63,11 +70,46 @@ contract("TokenSale", function (accounts) {
     expect(after).to.equal(before + numOfTokens);
     expect(args._buyer).to.equal(user1);
     expect(args._amount.toNumber()).to.equal(numOfTokens);
-    expect(args._value.toNumber()).to.equal(value)
-  //   const balance = (await token.balanceOf.call(user1)).toNumber();
-  //   expect(balance).to.equal(100)
+    expect(args._value.toNumber()).to.equal(value);
+
+    //check wallet balances 
+    const balance = (await token.balanceOf.call(user1)).toNumber();
+    const saleBalance = (await token.balanceOf.call(tokenSaleInstance.address)).toNumber();
+
+    expect(balance).to.equal(numOfTokens);
+    expect(saleBalance).to.equal(500000 - numOfTokens);
   });
 
+  it("should prevent non admin from ending sale", async () => {
+    // send end from non admin
+    // expect error
+    const tokenSaleInstance = await TokenSale.deployed();
+    const err = await tokenSaleInstance.endSale({from: user1}).catch(err => err);
+    expect(err.reason).to.equal("Must be admin")
+  });
 
+  it("allows admin to destroy contract, transfers balances", async () => {
+    const token = await Token.deployed();
+    const tokenSale = await TokenSale.deployed();
 
+    //token balances
+    const adminTokenBalance = (await token.balanceOf.call(admin)).toNumber();
+    const salesTokenBalance = (await token.balanceOf.call(tokenSale.address)).toNumber();
+
+    //eth balances
+    // const adminEthBalance = parseInt(await web3.eth.getBalance(admin));
+    // const salesEthBalance = parseInt(await web3.eth.getBalance(tokenSale.address));
+
+    // end sale and check logs
+    const { logs: { '0': { args } } } = await tokenSale.endSale({ from: admin });
+
+    //get after balances
+    // const adminEthEndBalance = parseInt(await web3.eth.getBalance(admin));
+    const adminTokenEndBalance = (await token.balanceOf.call(admin)).toNumber();
+
+    expect(args._totalSold.toNumber()).to.equal(100);
+    expect(args._contract).to.equal(tokenSale.address);
+    expect(adminTokenEndBalance).to.be.above(adminTokenBalance);
+
+  })
 });
