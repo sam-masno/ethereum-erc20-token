@@ -106,7 +106,6 @@ contract("TokenSale", function (accounts) {
     //get after balances
     // const adminEthEndBalance = parseInt(await web3.eth.getBalance(admin));
     const adminTokenEndBalance = (await token.balanceOf.call(admin)).toNumber();
-
     expect(args._totalSold.toNumber()).to.equal(100);
     expect(args._contract).to.equal(tokenSale.address);
     expect(adminTokenEndBalance).to.be.above(adminTokenBalance);
