@@ -1,7 +1,7 @@
 {
-  "name": "client",
+  "name": "Token Sale Full Stack",
   "version": "1.0.0",
-  "description": "",
+  "description": "React app with Ethereum ERC20 and token sale smart contracts",
   "main": "server.js",
   "dependencies": {
     "express": "^4.17.1",
