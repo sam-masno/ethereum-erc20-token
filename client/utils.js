@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = require('path')
+const path = require('path');
 
 const TokenSaleABI = (JSON.parse(fs.readFileSync(path.join(__dirname, '../', 'build', 'contracts', 'TokenSale.json')))).abi;
 const TokenABI = (JSON.parse(fs.readFileSync(path.join(__dirname, '../', 'build', 'contracts', 'Token.json' )))).abi;
