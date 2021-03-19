@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
-const data = require(('./contractData.js'));
+const data = require('./utils.js');
 
 app.use('/', express.static(path.join(__dirname, 'public')));
 
