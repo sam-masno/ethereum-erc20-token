@@ -1,11 +1,16 @@
 const Token = artifacts.require("../contracts/Token.sol");
 const TokenSale = artifacts.require("../contracts/TokenSale.sol");
 const { log } = console;
-/*
- * uncomment accounts to access the test accounts made available by the
- * Ethereum client
- * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
- */
+
+const {
+  totalSupply,
+  name,
+  symbol,
+  decimal,
+  price,
+  initialTransferToTokenSale
+} = require('../tokenConfig.js');
+
 contract("TokenSale", function (accounts) {
   let [admin, user1, user2] = accounts;
   it("should assert true", async function () {
@@ -13,11 +18,11 @@ contract("TokenSale", function (accounts) {
     return assert.isTrue(true);
   });
 
-  it("should have a balance of half 500000 tokens", async () => {
+  it(`should have a balance of initialTransferToTokenSale from tokenConfig.js`, async () => {
     const tokenInstance = await Token.deployed();
     const tokenSaleInstance = await TokenSale.deployed();
     const balance = await tokenInstance.balanceOf.call(tokenSaleInstance.address);
-    expect(balance.toNumber()).to.equal(500000);
+    expect(balance.toNumber()).to.equal(initialTransferToTokenSale);
   })
 
   it("should have an admin equal to source wallet", async () => {
@@ -28,11 +33,11 @@ contract("TokenSale", function (accounts) {
     expect(tokenAddress).to.equal(tokenInstance.address)
   });
 
-  it("should have a price of 1000", async() => {
+  it("should have a price set to tokenConfig.js", async() => {
     const tokenSale = await TokenSale.deployed();
-    const price = await tokenSale.price.call();
+    const tokenPrice = await tokenSale.price.call();
 
-    expect(price.toNumber()).to.equal(1000)
+    expect(tokenPrice.toNumber()).to.equal(price);
   });
 
   it("should set admin wallet to appropriate address", async () => {
@@ -43,21 +48,21 @@ contract("TokenSale", function (accounts) {
 
   it("prevents underpayment for a token", async () => {
       const tokenSaleInstance = await TokenSale.deployed();
-      const err = await tokenSaleInstance.buyTokens(100, {from: user1, value: 1}).catch(err => err);
+      const err = await tokenSaleInstance.buyTokens(100, {from: user1, value: price - 10}).catch(err => err);
       expect(err.reason).to.equal('Insufficient payment')
   });
 
   it("enforces exact payment", async () => {
     const tokenSaleInstance = await TokenSale.deployed();
-    const err = await tokenSaleInstance.buyTokens(1, {from: user1, value: 300000}).catch(err => err);
+    const err = await tokenSaleInstance.buyTokens(1, {from: user1, value: price * 2}).catch(err => err);
     expect(err.reason).to.equal('Must pay exact amount');
   });
 
   
   it("allows user to buy token", async () => {
     //get instances
-    const numOfTokens = 100;
-    const value = 100000;
+    const numOfTokens = Math.floor(initialTransferToTokenSale / 2);
+    const value = price * numOfTokens;
     const tokenSaleInstance = await TokenSale.deployed();
     const token = await Token.deployed();
 
@@ -77,7 +82,7 @@ contract("TokenSale", function (accounts) {
     const saleBalance = (await token.balanceOf.call(tokenSaleInstance.address)).toNumber();
 
     expect(balance).to.equal(numOfTokens);
-    expect(saleBalance).to.equal(500000 - numOfTokens);
+    expect(saleBalance).to.equal(initialTransferToTokenSale - numOfTokens);
   });
 
   it("should prevent non admin from ending sale", async () => {
@@ -106,7 +111,7 @@ contract("TokenSale", function (accounts) {
     //get after balances
     // const adminEthEndBalance = parseInt(await web3.eth.getBalance(admin));
     const adminTokenEndBalance = (await token.balanceOf.call(admin)).toNumber();
-    expect(args._totalSold.toNumber()).to.equal(100);
+    expect(args._totalSold.toNumber()).to.equal(Math.floor(initialTransferToTokenSale / 2));
     expect(args._contract).to.equal(tokenSale.address);
     expect(adminTokenEndBalance).to.be.above(adminTokenBalance);
 

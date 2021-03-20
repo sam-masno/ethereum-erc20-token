@@ -1,5 +1,14 @@
 const Token = artifacts.require('../contracts/Token.sol');
 
+const {
+  totalSupply,
+  name,
+  symbol,
+  decimal,
+  price,
+  initialTransferToTokenSale
+} = require('../tokenConfig.js');
+
 contract('Token tests', async (accounts) => {
 
   let instance;
@@ -11,13 +20,13 @@ contract('Token tests', async (accounts) => {
   it('sets name on deployment', async () => {
     // let instance = await Token.deployed();
     let name = await instance.name.call();
-    expect(name).to.equal('Test Token');
+    expect(name).to.equal(name);
   }) 
 
   it('sets symbol and version on deployment', async () => {
     let symbol = await instance.symbol.call();
     let version = await instance.version.call();
-    expect(symbol).to.equal('TST');
+    expect(symbol).to.equal(symbol);
     expect(version).to.equal('v1.0.0');
   })
 
