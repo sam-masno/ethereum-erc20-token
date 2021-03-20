@@ -7,9 +7,10 @@ let web3;
 let tokenSaleContract;
 let tokenContract;
 let currentAccount;
+let address;
 
 // get passed contracts from client, set up contract instances
-export const setupAPI = async (data) => {
+export const setupAPI = async () => {
   try {
     const { data } = await axios.get('/contracts');
     if(window.ethereum) {
@@ -18,19 +19,18 @@ export const setupAPI = async (data) => {
       window.ethereum.enable();
       // get current account
       [currentAccount] = await web3.eth.getAccounts();
-      console.log(currentAccount);
       //handle account change
       window.ethereum.on('accountsChanged', async function () {
         [currentAccount] = await web3.eth.getAccounts();
-        console.log(currentAccount);
       });
   
       if(currentAccount === undefined) return false;
     } else return false;
-    //create contracts
+    //create contracts instances for API
     tokenSaleContract = new web3.eth.Contract(data.TokenSaleABI, data.addresses.tokenSale);
     tokenContract = new web3.eth.Contract(data.TokenABI, data.addresses.token);
-    // return true when contracts are setup
+    address = data.addresses.token;
+    // return true when contracts are setup so client can render
     return true;
 
   } catch (error) {
@@ -40,8 +40,10 @@ export const setupAPI = async (data) => {
   
 };
 
+export const getAddress = () => address;
+
 // get balance supply piece and symbol from the token contract and return to client
-// all items needed or 
+// error will render in client if a single request is failed
 export const getTokenInfo = async () => {
   try {
     const name = await tokenContract.methods.name().call();
@@ -61,9 +63,28 @@ export const getSaleInfo = async () => {
   try {
     const sold = await tokenSaleContract.methods.sold().call();
     const price = await tokenSaleContract.methods.price().call();
-    return { sold, price};
+    const ethPrice = await fromWei(price);
+    return { sold, price, ethPrice };
   } catch (error) {
     console.log(error);
     return false;
   }
 };
+
+export const fromWei = async (price, amount = 1) => {
+  let res = await web3.utils.fromWei((price * amount).toString(), 'ether')
+  return res;
+}
+
+// buy tokens from tokenSale contract
+export const buyTokens = async (amount, total) => {
+  try {
+    console.log('buying', amount, total)
+    const success = await tokenSaleContract.methods.buyTokens(amount).send({from: currentAccount, value: total});
+    console.log(success);
+    return true;
+  } catch (error) {
+    console.log(error)
+    return error
+  }
+}
