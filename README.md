@@ -11,7 +11,8 @@ Node.js
 ## Setup and Run
 Ensure Ganache is installed and running  
 In truffleConfig.js make sure `networks.development` matches your Ganache instance (set to defaults)  
-In root directory run `truffle migrate --reset`  
+
+In root directory run `truffle build` and `truffle migrate --reset` 
 Navigate to the directory `client`  
 Run `npm install`  
 Run `npm run build`  
